@@ -20,6 +20,3 @@ permissions:
   lainaplots.reload:
     description: Pozwala przeładować konfigurację przez /dzialki reload.
     default: op
-  lainaplots.bypassdelay:
-    description: Pomija opcjonalne opóźnienie teleportacji.
-    default: op
