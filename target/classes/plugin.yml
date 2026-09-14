@@ -1,0 +1,25 @@
+name: LainaPlots
+version: '0.1.0'
+main: pl.laina.plots.LainaPlotsPlugin
+api-version: '26.2'
+authors: [Laina]
+description: Estetyczne GUI domów działek ProtectionStones.
+depend: [ProtectionStones]
+
+commands:
+  dzialki:
+    description: Otwiera GUI działek ProtectionStones.
+    usage: /dzialki [reload]
+    aliases: [plots]
+    permission: lainaplots.use
+
+permissions:
+  lainaplots.use:
+    description: Pozwala użyć /dzialki oraz /plots.
+    default: true
+  lainaplots.reload:
+    description: Pozwala przeładować konfigurację przez /dzialki reload.
+    default: op
+  lainaplots.bypassdelay:
+    description: Pomija opcjonalne opóźnienie teleportacji.
+    default: op

@@ -1,0 +1,23 @@
+# MiniMessage: https://docs.advntr.dev/minimessage/format.html
+gui-title: "<gradient:#58d68d:#2ecc71><bold>Twoje działki</bold></gradient>"
+
+# GUI ma maksymalnie 28 miejsc na działki. Mniejsze wartości tworzą więcej stron.
+plots-per-page: 28
+
+# 0 = teleport natychmiastowy. Przy opóźnieniu ruch anuluje teleport.
+teleport-delay-seconds: 0
+teleport-sound: "minecraft:entity.enderman.teleport"
+
+messages:
+  no-permission: "<red>Nie masz uprawnień do tej komendy."
+  players-only: "<red>Ta komenda jest dostępna tylko dla gracza."
+  loading: "<gray>Wczytuję Twoje działki…"
+  load-failed: "<red>Nie udało się wczytać działek. Spróbuj ponownie."
+  plot-gone: "<red>Ta działka już nie istnieje. Lista została odświeżona."
+  access-lost: "<red>Nie masz już dostępu do tej działki."
+  invalid-home: "<red>Ta działka nie ma poprawnie ustawionego punktu home."
+  teleport-wait: "<yellow>Teleport za <seconds>s. Nie ruszaj się."
+  teleport-cancelled: "<red>Teleport anulowany — poruszyłeś się."
+  teleporting: "<green>Teleportuję do <white><plot></white>…"
+  teleport-failed: "<red>Teleport nie powiódł się."
+  reloaded: "<green>Konfiguracja LainaPlots została przeładowana."
