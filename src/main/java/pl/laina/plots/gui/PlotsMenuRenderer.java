@@ -34,6 +34,9 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import pl.laina.plots.config.PluginSettings;
+import pl.laina.plots.config.ConfiguredIcon;
+import pl.laina.plots.config.GuiIcon;
+import pl.laina.plots.config.GuiIcons;
 import pl.laina.plots.core.Page;
 import pl.laina.plots.core.PlotCatalogue;
 import pl.laina.plots.gui.LoadingHolder;
@@ -44,6 +47,7 @@ import pl.laina.plots.model.PlotData;
 import pl.laina.plots.model.PlotFilter;
 import pl.laina.plots.model.PlotKey;
 import pl.laina.plots.model.PlotRelation;
+import pl.laina.plots.model.PlotTeleportTarget;
 
 public final class PlotsMenuRenderer {
     public static final int[] PLOT_SLOTS = new int[]{10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43};
@@ -52,6 +56,7 @@ public final class PlotsMenuRenderer {
     private final PlotCatalogue catalogue;
     private final NamespacedKey plotWorldKey;
     private final NamespacedKey plotRegionKey;
+    private final NamespacedKey plotNameKey;
     private final NamespacedKey actionKey;
 
     public PlotsMenuRenderer(JavaPlugin plugin, Messages messages, PlotCatalogue catalogue) {
@@ -60,6 +65,7 @@ public final class PlotsMenuRenderer {
         this.catalogue = catalogue;
         this.plotWorldKey = new NamespacedKey((Plugin)plugin, "plot_world");
         this.plotRegionKey = new NamespacedKey((Plugin)plugin, "plot_region");
+        this.plotNameKey = new NamespacedKey((Plugin)plugin, "plot_name");
         this.actionKey = new NamespacedKey((Plugin)plugin, "menu_action");
     }
 
@@ -67,8 +73,8 @@ public final class PlotsMenuRenderer {
         LoadingHolder holder = new LoadingHolder();
         Inventory inventory = Bukkit.createInventory((InventoryHolder)holder, (int)27, (Component)this.messages.parse(settings.guiTitle()));
         holder.attach(inventory);
-        this.fill(inventory, Material.BLACK_STAINED_GLASS_PANE);
-        inventory.setItem(13, this.item(Material.CLOCK, "<yellow><bold>Wczytywanie\u2026</bold>", List.of("<gray>Szukam Twoich dzia\u0142ek.")));
+        this.fill(inventory, settings.icons().get(GuiIcon.FILLER));
+        inventory.setItem(13, this.item(settings.icons().get(GuiIcon.LOADING), "<yellow><bold>Wczytywanie\u2026</bold>", List.of("<gray>Szukam Twoich dzia\u0142ek.")));
         return inventory;
     }
 
@@ -78,27 +84,32 @@ public final class PlotsMenuRenderer {
         Component title = this.messages.parse(settings.guiTitle()).append(this.messages.parse(" <dark_gray>\u2022 " + (page.index() + 1) + "/" + page.totalPages()));
         Inventory inventory = Bukkit.createInventory((InventoryHolder)holder, (int)54, (Component)title);
         holder.attach(inventory);
-        this.fill(inventory, Material.BLACK_STAINED_GLASS_PANE);
+        GuiIcons icons = settings.icons();
+        this.fill(inventory, icons.get(GuiIcon.FILLER));
         for (int i = 0; i < Math.min(page.entries().size(), PLOT_SLOTS.length); ++i) {
             PlotData plot = page.entries().get(i);
-            inventory.setItem(PLOT_SLOTS[i], this.plotItem(plot, lastUsed.filter(plot.key()::equals).isPresent()));
+            inventory.setItem(PLOT_SLOTS[i], this.plotItem(plot, lastUsed.filter(plot.key()::equals).isPresent(), icons));
         }
         if (page.isEmpty()) {
-            inventory.setItem(22, this.item(Material.FLOWER_POT, "<yellow><bold>Brak dzia\u0142ek</bold>", List.of(filter == PlotFilter.ALL ? "<gray>Nie masz jeszcze \u017cadnej dost\u0119pnej dzia\u0142ki." : "<gray>Brak dzia\u0142ek w tym filtrze.", "<dark_gray>Postaw ProtectionStone lub zmie\u0144 filtr.")));
+            inventory.setItem(22, this.item(icons.get(GuiIcon.EMPTY_STATE), "<yellow><bold>Brak dzia\u0142ek</bold>", List.of(filter == PlotFilter.ALL ? "<gray>Nie masz jeszcze \u017cadnej dost\u0119pnej dzia\u0142ki." : "<gray>Brak dzia\u0142ek w tym filtrze.", "<dark_gray>Postaw ProtectionStone lub zmie\u0144 filtr.")));
         }
         if (page.hasPrevious()) {
-            inventory.setItem(45, this.action(Material.ARROW, "<green>Poprzednia strona", MenuAction.PREVIOUS));
+            inventory.setItem(45, this.action(icons.get(GuiIcon.PREVIOUS_PAGE), "<green>Poprzednia strona", MenuAction.PREVIOUS));
         }
-        inventory.setItem(47, this.action(Material.HOPPER, "<aqua>Filtr: <white>" + this.filterName(filter), MenuAction.FILTER));
-        inventory.setItem(49, this.item(Material.BOOK, "<gold><bold>Podsumowanie</bold>", List.of("<gray>Widoczne: <white>" + page.totalEntries(), "<gray>Wszystkie dost\u0119pne: <white>" + plots.size(), "<dark_gray>LPM na dzia\u0142k\u0119 = teleport")));
-        inventory.setItem(51, this.action(Material.SUNFLOWER, "<yellow>Od\u015bwie\u017c list\u0119", MenuAction.REFRESH));
+        inventory.setItem(47, this.action(icons.get(GuiIcon.FILTER), "<aqua>Filtr: <white>" + this.filterName(filter), MenuAction.FILTER));
+        inventory.setItem(49, this.item(icons.get(GuiIcon.SUMMARY), "<gold><bold>Podsumowanie</bold>", List.of("<gray>Widoczne: <white>" + page.totalEntries(), "<gray>Wszystkie dost\u0119pne: <white>" + plots.size(), "<dark_gray>LPM na dzia\u0142k\u0119 = teleport")));
+        inventory.setItem(51, this.action(icons.get(GuiIcon.REFRESH), "<yellow>Od\u015bwie\u017c list\u0119", MenuAction.REFRESH));
         if (page.hasNext()) {
-            inventory.setItem(53, this.action(Material.ARROW, "<green>Nast\u0119pna strona", MenuAction.NEXT));
+            inventory.setItem(53, this.action(icons.get(GuiIcon.NEXT_PAGE), "<green>Nast\u0119pna strona", MenuAction.NEXT));
         }
         return inventory;
     }
 
     public Optional<PlotKey> readPlot(ItemStack item) {
+        return this.readPlotTarget(item).map(PlotTeleportTarget::key);
+    }
+
+    public Optional<PlotTeleportTarget> readPlotTarget(ItemStack item) {
         if (item == null || !item.hasItemMeta()) {
             return Optional.empty();
         }
@@ -108,7 +119,8 @@ public final class PlotsMenuRenderer {
             return Optional.empty();
         }
         try {
-            return Optional.of(new PlotKey(UUID.fromString(world), region));
+            String name = (String)item.getItemMeta().getPersistentDataContainer().get(this.plotNameKey, PersistentDataType.STRING);
+            return Optional.of(new PlotTeleportTarget(new PlotKey(UUID.fromString(world), region), name));
         }
         catch (IllegalArgumentException ignored) {
             return Optional.empty();
@@ -131,8 +143,7 @@ public final class PlotsMenuRenderer {
         }
     }
 
-    private ItemStack plotItem(PlotData plot, boolean lastUsed) {
-        Material icon = plot.relation() == PlotRelation.OWNED ? Material.GRASS_BLOCK : Material.ENDER_CHEST;
+    private ItemStack plotItem(PlotData plot, boolean lastUsed, GuiIcons icons) {
         String relation = plot.relation() == PlotRelation.OWNED ? "<green>W\u0142asna" : "<aqua>Wsp\u00f3\u0142dzielona";
         String owners = plot.ownerNames().isEmpty() ? "nieznany" : String.join((CharSequence)", ", plot.ownerNames());
         ArrayList<String> lore = new ArrayList<String>(List.of("<dark_gray>\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501", "<gray>Status: " + relation, "<gray>W\u0142a\u015bciciel: <white>" + this.escape(owners), "<gray>\u015awiat: <white>" + this.escape(plot.worldName()), "<gray>Home: <white>" + plot.homeX() + ", " + plot.homeY() + ", " + plot.homeZ(), "<gray>Cz\u0142onkowie: <white>" + plot.memberCount(), ""));
@@ -140,10 +151,13 @@ public final class PlotsMenuRenderer {
             lore.add("<gold>\u2605 Ostatnio u\u017cywana");
         }
         lore.add("<yellow>\u25b6 Kliknij, aby si\u0119 teleportowa\u0107");
-        ItemStack item = this.item(icon, (plot.relation() == PlotRelation.OWNED ? "<green>" : "<aqua>") + "<bold>" + this.escape(plot.displayName()) + "</bold>", lore);
+        ItemStack item = this.item(icons.forPlot(plot.relation()), (plot.relation() == PlotRelation.OWNED ? "<green>" : "<aqua>") + "<bold>" + this.escape(plot.displayName()) + "</bold>", lore);
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(this.plotWorldKey, PersistentDataType.STRING, plot.key().worldId().toString());
         meta.getPersistentDataContainer().set(this.plotRegionKey, PersistentDataType.STRING, plot.key().regionId());
+        if (plot.regionName() != null && !plot.regionName().isBlank()) {
+            meta.getPersistentDataContainer().set(this.plotNameKey, PersistentDataType.STRING, plot.regionName());
+        }
         if (lastUsed) {
             meta.setEnchantmentGlintOverride(Boolean.valueOf(true));
         }
@@ -151,25 +165,26 @@ public final class PlotsMenuRenderer {
         return item;
     }
 
-    private ItemStack action(Material material, String name, MenuAction action) {
-        ItemStack item = this.item(material, name, List.of());
+    private ItemStack action(ConfiguredIcon icon, String name, MenuAction action) {
+        ItemStack item = this.item(icon, name, List.of());
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(this.actionKey, PersistentDataType.STRING, action.name());
         item.setItemMeta(meta);
         return item;
     }
 
-    private ItemStack item(Material material, String name, List<String> lore) {
-        ItemStack item = new ItemStack(material);
+    private ItemStack item(ConfiguredIcon icon, String name, List<String> lore) {
+        ItemStack item = new ItemStack(icon.material());
         ItemMeta meta = item.getItemMeta();
         meta.displayName(this.messages.parse("<italic:false>" + name));
         meta.lore(lore.stream().map(line -> this.messages.parse("<italic:false>" + line)).toList());
+        icon.applyTo(meta);
         item.setItemMeta(meta);
         return item;
     }
 
-    private void fill(Inventory inventory, Material material) {
-        ItemStack filler = this.item(material, " ", List.of());
+    private void fill(Inventory inventory, ConfiguredIcon icon) {
+        ItemStack filler = this.item(icon, " ", List.of());
         for (int slot = 0; slot < inventory.getSize(); ++slot) {
             inventory.setItem(slot, filler);
         }

@@ -22,7 +22,6 @@ import dev.espi.protectionstones.utils.UUIDCache;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -66,19 +65,6 @@ implements PlotGateway {
         });
     }
 
-    @Override
-    public CompletableFuture<Optional<PlotGateway.ResolvedPlot>> resolve(Player player, PlotKey key) {
-        UUID viewer = player.getUniqueId();
-        World world = Bukkit.getWorld((UUID)key.worldId());
-        if (world == null) {
-            return CompletableFuture.completedFuture(Optional.empty());
-        }
-        return this.async(() -> {
-            boolean includeMembers = this.protectionStones.getConfigOptions().allowHomeTeleportForMembers;
-            return PSPlayer.fromUUID((UUID)viewer).getPSRegions(world, includeMembers).stream().filter(region -> region.getId().equals(key.regionId())).filter(this::isUsableHome).findFirst().map(region -> new PlotGateway.ResolvedPlot(this.map(region), region.getHome()));
-        });
-    }
-
     private boolean isUsableHome(PSRegion region) {
         return region != null && region.getTypeOptions() != null && !region.getTypeOptions().preventPsHome;
     }
@@ -92,7 +78,7 @@ implements PlotGateway {
         Set<UUID> owners = Set.copyOf(region.getOwners());
         Set<UUID> members = Set.copyOf(region.getMembers());
         List<String> ownerNames = owners.stream().map(this::playerName).sorted(String.CASE_INSENSITIVE_ORDER).toList();
-        return new PlotSource(new PlotKey(region.getWorld().getUID(), region.getId()), region.getName(), region.getWorld().getName(), owners, ownerNames, members, x, y, z, valid);
+        return new PlotSource(new PlotKey(region.getWorld().getUID(), region.getId()), region.getName(), region.getWorld().getName(), owners, ownerNames, members, x, y, z);
     }
 
     private String playerName(UUID uuid) {

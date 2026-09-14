@@ -20,8 +20,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import pl.laina.plots.command.PlotsCommand;
+import pl.laina.plots.config.DefaultConfigInstaller;
 import pl.laina.plots.config.PluginSettings;
-import pl.laina.plots.core.PlotAccessPolicy;
 import pl.laina.plots.core.PlotCatalogue;
 import pl.laina.plots.core.PlotMapper;
 import pl.laina.plots.gui.GuiListener;
@@ -29,18 +29,18 @@ import pl.laina.plots.gui.PlotsMenuController;
 import pl.laina.plots.gui.PlotsMenuRenderer;
 import pl.laina.plots.message.Messages;
 import pl.laina.plots.service.ProtectionStonesPlotGateway;
-import pl.laina.plots.teleport.TeleportCoordinator;
+import pl.laina.plots.teleport.ProtectionStonesTeleportDelegate;
+
+import java.io.IOException;
 
 public final class LainaPlotsPlugin
 extends JavaPlugin {
     private PluginSettings settings;
-    private TeleportCoordinator teleports;
-
     public void onEnable() {
         ProtectionStones protectionStones;
         block5: {
             block4: {
-                this.saveDefaultConfig();
+                this.installDefaultConfig();
                 this.reloadSettings();
                 Plugin dependency = this.getServer().getPluginManager().getPlugin("ProtectionStones");
                 if (!(dependency instanceof ProtectionStones)) break block4;
@@ -57,7 +57,7 @@ extends JavaPlugin {
         PlotCatalogue catalogue = new PlotCatalogue();
         PlotsMenuRenderer renderer = new PlotsMenuRenderer(this, messages, catalogue);
         PlotsMenuController menus = new PlotsMenuController(this, gateway, mapper, renderer, messages);
-        this.teleports = new TeleportCoordinator(this, gateway, new PlotAccessPolicy(), menus, messages);
+        ProtectionStonesTeleportDelegate teleports = new ProtectionStonesTeleportDelegate(protectionStones.getConfigOptions().base_command, (player, key) -> messages.send(player, key), menus::markUsed, (player, target) -> ProtectionStones.getPSRegions(player.getWorld(), target.regionName()).stream().anyMatch(region -> region.getWorld().getUID().equals(target.key().worldId()) && region.getId().equals(target.key().regionId())));
         PluginCommand command = this.getCommand("dzialki");
         if (command == null) {
             this.getLogger().severe("Brakuje komendy dzialki w plugin.yml. Wy\u0142\u0105czam plugin.");
@@ -67,14 +67,16 @@ extends JavaPlugin {
         PlotsCommand executor = new PlotsCommand(this, menus, messages);
         command.setExecutor((CommandExecutor)executor);
         command.setTabCompleter((TabCompleter)executor);
-        this.getServer().getPluginManager().registerEvents((Listener)new GuiListener(menus, this.teleports), (Plugin)this);
-        this.getServer().getPluginManager().registerEvents((Listener)this.teleports, (Plugin)this);
+        this.getServer().getPluginManager().registerEvents((Listener)new GuiListener(menus, teleports), (Plugin)this);
         this.getLogger().info("LainaPlots w\u0142\u0105czony. GUI: /dzialki, alias: /plots.");
     }
 
-    public void onDisable() {
-        if (this.teleports != null) {
-            this.teleports.shutdown();
+    private void installDefaultConfig() {
+        try {
+            DefaultConfigInstaller.installIfMissing(this.getDataFolder().toPath(), () -> this.getResource("config.yml"));
+        }
+        catch (IOException exception) {
+            throw new IllegalStateException("Nie udało się zapisać domyślnego config.yml.", exception);
         }
     }
 
@@ -87,4 +89,3 @@ extends JavaPlugin {
         return this.settings;
     }
 }
-

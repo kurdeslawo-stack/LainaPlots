@@ -7,6 +7,5 @@ import java.util.List;
 import pl.laina.plots.model.PlotKey;
 import pl.laina.plots.model.PlotRelation;
 
-public record PlotData(PlotKey key, String displayName, String worldName, List<String> ownerNames, int memberCount, PlotRelation relation, int homeX, int homeY, int homeZ) {
+public record PlotData(PlotKey key, String regionName, String displayName, String worldName, List<String> ownerNames, int memberCount, PlotRelation relation, int homeX, int homeY, int homeZ) {
 }
-

@@ -1,7 +1,10 @@
 C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\command\PlotsCommand.java
+C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\config\ConfiguredIcon.java
+C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\config\DefaultConfigInstaller.java
+C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\config\GuiIcon.java
+C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\config\GuiIcons.java
 C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\config\PluginSettings.java
 C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\core\Page.java
-C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\core\PlotAccessPolicy.java
 C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\core\PlotCatalogue.java
 C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\core\PlotMapper.java
 C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\gui\GuiListener.java
@@ -13,12 +16,13 @@ C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\gui\Plo
 C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\gui\ProtectedGuiHolder.java
 C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\LainaPlotsPlugin.java
 C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\message\Messages.java
-C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\model\AccessResult.java
 C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\model\PlotData.java
 C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\model\PlotFilter.java
 C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\model\PlotKey.java
 C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\model\PlotRelation.java
 C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\model\PlotSource.java
+C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\model\PlotTeleportTarget.java
 C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\service\PlotGateway.java
 C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\service\ProtectionStonesPlotGateway.java
-C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\teleport\TeleportCoordinator.java
+C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\teleport\ProtectionStonesHomeCommand.java
+C:\Users\kamil\Desktop\LainaPlots-Recovered\src\main\java\pl\laina\plots\teleport\ProtectionStonesTeleportDelegate.java

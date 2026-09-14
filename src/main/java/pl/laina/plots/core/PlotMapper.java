@@ -19,7 +19,7 @@ public final class PlotMapper {
             throw new IllegalArgumentException("Viewer has no access to plot " + source.key().regionId());
         }
         Object name = source.nickname() == null || source.nickname().isBlank() ? "Dzia\u0142ka " + PlotMapper.shortId(source.key().regionId()) : source.nickname();
-        return new PlotData(source.key(), (String)name, source.worldName(), source.ownerNames(), source.members().size(), relation, PlotMapper.floor(source.homeX()), PlotMapper.floor(source.homeY()), PlotMapper.floor(source.homeZ()));
+        return new PlotData(source.key(), source.nickname(), (String)name, source.worldName(), source.ownerNames(), source.members().size(), relation, PlotMapper.floor(source.homeX()), PlotMapper.floor(source.homeY()), PlotMapper.floor(source.homeZ()));
     }
 
     private static String shortId(String id) {
@@ -30,4 +30,3 @@ public final class PlotMapper {
         return (int)Math.floor(value);
     }
 }
-

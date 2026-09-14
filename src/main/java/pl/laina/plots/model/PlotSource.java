@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 import pl.laina.plots.model.PlotKey;
 
-public record PlotSource(PlotKey key, String nickname, String worldName, Set<UUID> owners, List<String> ownerNames, Set<UUID> members, double homeX, double homeY, double homeZ, boolean validHome) {
+public record PlotSource(PlotKey key, String nickname, String worldName, Set<UUID> owners, List<String> ownerNames, Set<UUID> members, double homeX, double homeY, double homeZ) {
     public PlotSource {
         Objects.requireNonNull(key, "key");
         Objects.requireNonNull(worldName, "worldName");
@@ -18,4 +18,3 @@ public record PlotSource(PlotKey key, String nickname, String worldName, Set<UUI
         members = Set.copyOf(members);
     }
 }
-

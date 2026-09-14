@@ -27,15 +27,14 @@ import pl.laina.plots.gui.MenuAction;
 import pl.laina.plots.gui.PlotsMenuController;
 import pl.laina.plots.gui.PlotsMenuHolder;
 import pl.laina.plots.gui.ProtectedGuiHolder;
-import pl.laina.plots.model.PlotKey;
-import pl.laina.plots.teleport.TeleportCoordinator;
+import pl.laina.plots.teleport.ProtectionStonesTeleportDelegate;
 
 public final class GuiListener
 implements Listener {
     private final PlotsMenuController menus;
-    private final TeleportCoordinator teleports;
+    private final ProtectionStonesTeleportDelegate teleports;
 
-    public GuiListener(PlotsMenuController menus, TeleportCoordinator teleports) {
+    public GuiListener(PlotsMenuController menus, ProtectionStonesTeleportDelegate teleports) {
         this.menus = menus;
         this.teleports = teleports;
     }
@@ -58,7 +57,7 @@ implements Listener {
             return;
         }
         ItemStack clicked = event.getCurrentItem();
-        this.menus.renderer().readPlot(clicked).ifPresent(key -> this.teleports.request(player, (PlotKey)key));
+        this.menus.renderer().readPlotTarget(clicked).ifPresent(target -> this.teleports.request(player, target));
         this.menus.renderer().readAction(clicked).ifPresent(action -> this.handleAction(player, (MenuAction)((Object)action), event));
     }
 
@@ -94,4 +93,3 @@ implements Listener {
         }
     }
 }
-
