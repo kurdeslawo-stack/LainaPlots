@@ -40,6 +40,21 @@ class GuiIconsTest {
     }
 
     @Test
+    void negativeCustomModelDataIsTreatedAsUnset() throws Exception {
+        GuiIcons icons = load("gui:\n  icons:\n    filter:\n      material: HOPPER\n      custom-model-data: -15\n", new ArrayList<>());
+        AtomicInteger invocations = new AtomicInteger();
+        ItemMeta meta = proxy(ItemMeta.class, (proxy, method, args) -> {
+            invocations.incrementAndGet();
+            return null;
+        });
+
+        icons.get(GuiIcon.FILTER).applyTo(meta);
+
+        assertEquals(0, icons.get(GuiIcon.FILTER).customModelData());
+        assertEquals(0, invocations.get());
+    }
+
+    @Test
     void missingCustomModelDataDoesNotSetIt() throws Exception {
         GuiIcons icons = load("gui:\n  icons:\n    summary:\n      material: BOOK\n", new ArrayList<>());
 
@@ -83,6 +98,32 @@ class GuiIconsTest {
     }
 
     @Test
+    void airWarnsAndUsesPerIconFallback() throws Exception {
+        ArrayList<String> warnings = new ArrayList<>();
+        GuiIcons icons = load("gui:\n  icons:\n    empty-state:\n      material: AIR\n", warnings);
+
+        assertEquals(Material.FLOWER_POT, icons.get(GuiIcon.EMPTY_STATE).material());
+        assertEquals(1, warnings.size());
+        assertTrue(warnings.getFirst().contains("gui.icons.empty-state.material"));
+    }
+
+    @Test
+    void materialThatIsNotAnItemWarnsAndUsesPerIconFallback() throws Exception {
+        ArrayList<String> warnings = new ArrayList<>();
+        YamlConfiguration config = new YamlConfiguration();
+        config.loadFromString("gui:\n  icons:\n    loading:\n      material: WATER\n");
+        GuiIcons icons = GuiIcons.load(
+                config.getConfigurationSection("gui.icons"),
+                warnings::add,
+                material -> material != Material.WATER
+        );
+
+        assertEquals(Material.CLOCK, icons.get(GuiIcon.LOADING).material());
+        assertEquals(1, warnings.size());
+        assertTrue(warnings.getFirst().contains("gui.icons.loading.material"));
+    }
+
+    @Test
     void missingIconsSectionUsesAllFallbacks() {
         GuiIcons icons = GuiIcons.load(null, message -> {});
 
@@ -93,11 +134,31 @@ class GuiIconsTest {
     }
 
     @Test
+    void missingIndividualIconUsesItsFallback() throws Exception {
+        GuiIcons icons = load("gui:\n  icons:\n    filter:\n      material: DIAMOND\n", new ArrayList<>());
+
+        assertEquals(Material.DIAMOND, icons.get(GuiIcon.FILTER).material());
+        assertEquals(Material.SUNFLOWER, icons.get(GuiIcon.REFRESH).material());
+        assertEquals(0, icons.get(GuiIcon.REFRESH).customModelData());
+    }
+
+    @Test
     void ownerAndMemberUseTheirOwnConfiguredIcons() throws Exception {
         GuiIcons icons = load("gui:\n  icons:\n    owner-plot:\n      material: DIAMOND_BLOCK\n    member-plot:\n      material: EMERALD_BLOCK\n", new ArrayList<>());
 
         assertEquals(Material.DIAMOND_BLOCK, icons.forPlot(PlotRelation.OWNED).material());
         assertEquals(Material.EMERALD_BLOCK, icons.forPlot(PlotRelation.SHARED).material());
+    }
+
+    @Test
+    void loadingTheConfigAgainUsesUpdatedMaterialAndCustomModelData() throws Exception {
+        GuiIcons beforeReload = load("gui:\n  icons:\n    refresh:\n      material: SUNFLOWER\n      custom-model-data: 0\n", new ArrayList<>());
+        GuiIcons afterReload = load("gui:\n  icons:\n    refresh:\n      material: DIAMOND\n      custom-model-data: 123\n", new ArrayList<>());
+
+        assertEquals(Material.SUNFLOWER, beforeReload.get(GuiIcon.REFRESH).material());
+        assertEquals(0, beforeReload.get(GuiIcon.REFRESH).customModelData());
+        assertEquals(Material.DIAMOND, afterReload.get(GuiIcon.REFRESH).material());
+        assertEquals(123, afterReload.get(GuiIcon.REFRESH).customModelData());
     }
 
     private static GuiIcons load(String yaml, List<String> warnings) throws Exception {
