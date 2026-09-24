@@ -75,3 +75,7 @@ mvn package
 ```
 
 Wynik: `target/LainaPlots-0.1.0.jar`.
+
+Gotowy plik do instalacji na serwerze znajduje się również w głównym katalogu
+repozytorium jako `LainaPlots-0.1.0.jar`. Po podmianie JAR-a należy wykonać pełny
+restart serwera — `/dzialki reload` przeładowuje konfigurację, ale nie kod pluginu.
