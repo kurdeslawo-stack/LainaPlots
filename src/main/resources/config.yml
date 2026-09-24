@@ -4,28 +4,14 @@ gui-title: "<gradient:#58d68d:#2ecc71><bold>Twoje działki</bold></gradient>"
 # GUI ma maksymalnie 28 miejsc na działki. Mniejsze wartości tworzą więcej stron.
 plots-per-page: 28
 
-# Wbudowana paczka ikon. Na serwerze publicznym zmień 127.0.0.1 na adres serwera.
-# Aby zmienić grafikę bez ruszania Javy, podmień plugins/LainaPlots/LainaPlots-Icons.zip
-# i wykonaj /dzialki reload.
-resource-pack:
-  enabled: false
-  url: "http://127.0.0.1:8124/lainaplots-icons.zip"
-  required: false
-  prompt: "<green>Ikony menu działek LainaPlots"
-  file: "LainaPlots-Icons.zip"
-  serve:
-    enabled: false
-    bind-address: "0.0.0.0"
-    port: 8124
-
 gui:
   icons:
     filter:
       material: HOPPER
       custom-model-data: 0
     summary:
-      material: PAPER
-      custom-model-data: 71005
+      material: BOOK
+      custom-model-data: 0
     previous-page:
       material: ARROW
       custom-model-data: 0
@@ -39,18 +25,20 @@ gui:
       material: BLACK_STAINED_GLASS_PANE
       custom-model-data: 0
     owner-plot:
-      material: PAPER
-      custom-model-data: 71001
+      material: GRASS_BLOCK
+      custom-model-data: 0
     member-plot:
-      material: PAPER
-      custom-model-data: 71002
+      material: CYAN_STAINED_GLASS
+      custom-model-data: 0
     # Opcjonalne osobne ikony dla ulubionych. Stare configi użyją fallbacków.
+    # Własne modele podepnij tutaj przez material i custom-model-data z głównego
+    # texturepacka serwera. LainaPlots nie wysyła graczom osobnej paczki zasobów.
     favorite-owner-plot:
-      material: PAPER
-      custom-model-data: 71003
+      material: GOLD_BLOCK
+      custom-model-data: 0
     favorite-member-plot:
-      material: PAPER
-      custom-model-data: 71004
+      material: DIAMOND_BLOCK
+      custom-model-data: 0
     loading:
       material: CLOCK
       custom-model-data: 0

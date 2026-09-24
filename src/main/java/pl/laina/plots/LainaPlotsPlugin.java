@@ -29,7 +29,6 @@ import pl.laina.plots.gui.GuiListener;
 import pl.laina.plots.gui.PlotsMenuController;
 import pl.laina.plots.gui.PlotsMenuRenderer;
 import pl.laina.plots.message.Messages;
-import pl.laina.plots.resourcepack.ResourcePackManager;
 import pl.laina.plots.service.ProtectionStonesPlotGateway;
 import pl.laina.plots.teleport.ProtectionStonesTeleportDelegate;
 
@@ -38,7 +37,6 @@ import java.io.IOException;
 public final class LainaPlotsPlugin
 extends JavaPlugin {
     private PluginSettings settings;
-    private ResourcePackManager resourcePacks;
     public void onEnable() {
         ProtectionStones protectionStones;
         block5: {
@@ -55,8 +53,6 @@ extends JavaPlugin {
             return;
         }
         Messages messages = new Messages(this);
-        this.resourcePacks = new ResourcePackManager(this, messages);
-        this.resourcePacks.start(this.settings.resourcePack());
         ProtectionStonesPlotGateway gateway = new ProtectionStonesPlotGateway(this, protectionStones);
         PlotMapper mapper = new PlotMapper();
         PlotCatalogue catalogue = new PlotCatalogue();
@@ -74,7 +70,6 @@ extends JavaPlugin {
         command.setExecutor((CommandExecutor)executor);
         command.setTabCompleter((TabCompleter)executor);
         this.getServer().getPluginManager().registerEvents((Listener)new GuiListener(menus, teleports), (Plugin)this);
-        this.getServer().getPluginManager().registerEvents(this.resourcePacks, this);
         this.getLogger().info("LainaPlots w\u0142\u0105czony. GUI: /dzialki, alias: /plots.");
     }
 
@@ -90,16 +85,6 @@ extends JavaPlugin {
     public void reloadSettings() {
         this.reloadConfig();
         this.settings = PluginSettings.load(this);
-        if (this.resourcePacks != null) {
-            this.resourcePacks.reload(this.settings.resourcePack());
-        }
-    }
-
-    @Override
-    public void onDisable() {
-        if (this.resourcePacks != null) {
-            this.resourcePacks.close();
-        }
     }
 
     public PluginSettings settings() {

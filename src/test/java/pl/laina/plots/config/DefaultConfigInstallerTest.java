@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -49,6 +50,18 @@ class DefaultConfigInstallerTest {
 
         assertFalse(installed);
         assertArrayEquals(existing, Files.readAllBytes(configFile));
+    }
+
+    @Test
+    void defaultConfigDoesNotConfigureASeparateResourcePack() throws IOException {
+        String config;
+        try (InputStream resource = DefaultConfigInstallerTest.class.getResourceAsStream("/config.yml")) {
+            assertNotNull(resource);
+            config = new String(resource.readAllBytes(), StandardCharsets.UTF_8);
+        }
+
+        assertFalse(config.contains("resource-pack:"));
+        assertFalse(config.matches("(?s).*custom-model-data:\\s*[1-9][0-9]*.*"));
     }
 
     private static final class ZeroThenDataInputStream extends InputStream {
