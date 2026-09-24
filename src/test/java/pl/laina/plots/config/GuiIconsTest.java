@@ -151,6 +151,16 @@ class GuiIconsTest {
     }
 
     @Test
+    void favoriteOwnerAndMemberUseSeparateConfiguredIcons() throws Exception {
+        GuiIcons icons = load("gui:\n  icons:\n    favorite-owner-plot:\n      material: NETHER_STAR\n    favorite-member-plot:\n      material: HEART_OF_THE_SEA\n", new ArrayList<>());
+
+        assertEquals(Material.NETHER_STAR, icons.forPlot(PlotRelation.OWNED, true).material());
+        assertEquals(Material.HEART_OF_THE_SEA, icons.forPlot(PlotRelation.SHARED, true).material());
+        assertEquals(Material.GRASS_BLOCK, icons.forPlot(PlotRelation.OWNED, false).material());
+        assertEquals(Material.CYAN_STAINED_GLASS, icons.forPlot(PlotRelation.SHARED, false).material());
+    }
+
+    @Test
     void loadingTheConfigAgainUsesUpdatedMaterialAndCustomModelData() throws Exception {
         GuiIcons beforeReload = load("gui:\n  icons:\n    refresh:\n      material: SUNFLOWER\n      custom-model-data: 0\n", new ArrayList<>());
         GuiIcons afterReload = load("gui:\n  icons:\n    refresh:\n      material: DIAMOND\n      custom-model-data: 123\n", new ArrayList<>());

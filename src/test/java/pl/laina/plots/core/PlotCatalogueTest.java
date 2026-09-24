@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import pl.laina.plots.model.PlotData;
@@ -49,6 +50,24 @@ class PlotCatalogueTest {
         List<String> names = this.catalogue.page(plots, PlotFilter.ALL, 0, 28).entries().stream().map(PlotData::displayName).toList();
 
         assertEquals(List.of("Alpha", "beta", "Zulu"), names);
+    }
+
+    @Test
+    void sortsFavoritesBeforeOtherPlotsAndKeepsRelationOrderInsideGroups() {
+        PlotData ownedNormal = plot("owned-normal", "Alpha", PlotRelation.OWNED);
+        PlotData sharedFavorite = plot("shared-favorite", "Zulu", PlotRelation.SHARED);
+        PlotData ownedFavorite = plot("owned-favorite", "Beta", PlotRelation.OWNED);
+        PlotData sharedNormal = plot("shared-normal", "Gamma", PlotRelation.SHARED);
+
+        List<String> ids = this.catalogue.page(
+                List.of(ownedNormal, sharedFavorite, ownedFavorite, sharedNormal),
+                PlotFilter.ALL,
+                0,
+                28,
+                Set.of(sharedFavorite.key(), ownedFavorite.key())
+        ).entries().stream().map(plot -> plot.key().regionId()).toList();
+
+        assertEquals(List.of("owned-favorite", "shared-favorite", "owned-normal", "shared-normal"), ids);
     }
 
     private static PlotData plot(String id, String name, PlotRelation relation) {

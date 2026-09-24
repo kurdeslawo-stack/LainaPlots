@@ -9,6 +9,7 @@
  */
 package pl.laina.plots.gui;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -20,6 +21,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.Plugin;
 import pl.laina.plots.LainaPlotsPlugin;
 import pl.laina.plots.core.PlotMapper;
+import pl.laina.plots.favorite.FavoriteStore;
 import pl.laina.plots.gui.PlotsMenuRenderer;
 import pl.laina.plots.message.Messages;
 import pl.laina.plots.model.PlotData;
@@ -34,14 +36,16 @@ public final class PlotsMenuController {
     private final PlotMapper mapper;
     private final PlotsMenuRenderer renderer;
     private final Messages messages;
+    private final FavoriteStore favorites;
     private final Map<UUID, PlotKey> lastUsed = new ConcurrentHashMap<UUID, PlotKey>();
 
-    public PlotsMenuController(LainaPlotsPlugin plugin, PlotGateway gateway, PlotMapper mapper, PlotsMenuRenderer renderer, Messages messages) {
+    public PlotsMenuController(LainaPlotsPlugin plugin, PlotGateway gateway, PlotMapper mapper, PlotsMenuRenderer renderer, Messages messages, FavoriteStore favorites) {
         this.plugin = plugin;
         this.gateway = gateway;
         this.mapper = mapper;
         this.renderer = renderer;
         this.messages = messages;
+        this.favorites = favorites;
     }
 
     public void open(Player player) {
@@ -63,8 +67,25 @@ public final class PlotsMenuController {
     }
 
     public void show(Player player, List<PlotData> plots, PlotFilter filter, int page) {
-        Inventory inventory = this.renderer.render(plots, filter, page, this.plugin.settings(), Optional.ofNullable(this.lastUsed.get(player.getUniqueId())));
+        Inventory inventory = this.renderer.render(
+                plots,
+                filter,
+                page,
+                this.plugin.settings(),
+                Optional.ofNullable(this.lastUsed.get(player.getUniqueId())),
+                this.favorites.favorites(player.getUniqueId())
+        );
         player.openInventory(inventory);
+    }
+
+    public void toggleFavorite(Player player, List<PlotData> plots, PlotFilter filter, int page, PlotKey plot) {
+        try {
+            this.favorites.toggle(player.getUniqueId(), plot);
+            this.show(player, plots, filter, page);
+        } catch (IOException exception) {
+            this.plugin.getLogger().severe("Nie udało się zapisać ulubionych gracza " + player.getName() + ": " + exception.getMessage());
+            player.sendMessage(this.messages.parse("<red>Nie udało się zapisać ulubionej działki."));
+        }
     }
 
     public void refresh(Player player) {
@@ -83,4 +104,3 @@ public final class PlotsMenuController {
         Bukkit.getScheduler().runTask((Plugin)this.plugin, runnable);
     }
 }
-

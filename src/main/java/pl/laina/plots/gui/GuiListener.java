@@ -53,12 +53,29 @@ implements Listener {
         if (event.getClickedInventory() != event.getView().getTopInventory()) {
             return;
         }
-        if (!event.isLeftClick() || event.isShiftClick()) {
+        if (event.isShiftClick()) {
             return;
         }
         ItemStack clicked = event.getCurrentItem();
-        this.menus.renderer().readPlotTarget(clicked).ifPresent(target -> this.teleports.request(player, target));
-        this.menus.renderer().readAction(clicked).ifPresent(action -> this.handleAction(player, (MenuAction)((Object)action), event));
+        var plotTarget = this.menus.renderer().readPlotTarget(clicked);
+        if (plotTarget.isPresent()) {
+            switch (PlotClickAction.from(event.isLeftClick(), event.isRightClick(), false)) {
+                case TELEPORT -> this.teleports.request(player, plotTarget.get());
+                case TOGGLE_FAVORITE -> this.toggleFavorite(player, plotTarget.get().key(), event);
+                case NONE -> { }
+            }
+            return;
+        }
+        if (event.isLeftClick()) {
+            this.menus.renderer().readAction(clicked).ifPresent(action -> this.handleAction(player, action, event));
+        }
+    }
+
+    private void toggleFavorite(Player player, pl.laina.plots.model.PlotKey plot, InventoryClickEvent event) {
+        InventoryHolder inventoryHolder = event.getView().getTopInventory().getHolder(false);
+        if (inventoryHolder instanceof PlotsMenuHolder holder) {
+            this.menus.toggleFavorite(player, holder.plots(), holder.filter(), holder.page(), plot);
+        }
     }
 
     private void handleAction(Player player, MenuAction action, InventoryClickEvent event) {

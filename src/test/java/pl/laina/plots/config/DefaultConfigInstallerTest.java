@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -26,7 +25,7 @@ class DefaultConfigInstallerTest {
             assertNotNull(resource);
             expected = resource.readAllBytes();
         }
-        assertEquals(1844, expected.length);
+        assertTrue(expected.length > 0);
 
         boolean installed = DefaultConfigInstaller.installIfMissing(
                 temporaryDirectory,

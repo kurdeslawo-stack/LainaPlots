@@ -12,6 +12,8 @@ public enum GuiIcon {
     FILLER("filler", Material.BLACK_STAINED_GLASS_PANE),
     OWNER_PLOT("owner-plot", Material.GRASS_BLOCK),
     MEMBER_PLOT("member-plot", Material.CYAN_STAINED_GLASS),
+    FAVORITE_OWNER_PLOT("favorite-owner-plot", Material.GOLD_BLOCK),
+    FAVORITE_MEMBER_PLOT("favorite-member-plot", Material.DIAMOND_BLOCK),
     LOADING("loading", Material.CLOCK),
     EMPTY_STATE("empty-state", Material.FLOWER_POT);
 
@@ -32,6 +34,13 @@ public enum GuiIcon {
     }
 
     public static GuiIcon forPlot(PlotRelation relation) {
+        return forPlot(relation, false);
+    }
+
+    public static GuiIcon forPlot(PlotRelation relation, boolean favorite) {
+        if (favorite) {
+            return relation == PlotRelation.OWNED ? FAVORITE_OWNER_PLOT : FAVORITE_MEMBER_PLOT;
+        }
         return relation == PlotRelation.OWNED ? OWNER_PLOT : MEMBER_PLOT;
     }
 }

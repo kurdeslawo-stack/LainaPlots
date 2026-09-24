@@ -24,10 +24,12 @@ import pl.laina.plots.config.DefaultConfigInstaller;
 import pl.laina.plots.config.PluginSettings;
 import pl.laina.plots.core.PlotCatalogue;
 import pl.laina.plots.core.PlotMapper;
+import pl.laina.plots.favorite.FavoriteStore;
 import pl.laina.plots.gui.GuiListener;
 import pl.laina.plots.gui.PlotsMenuController;
 import pl.laina.plots.gui.PlotsMenuRenderer;
 import pl.laina.plots.message.Messages;
+import pl.laina.plots.resourcepack.ResourcePackManager;
 import pl.laina.plots.service.ProtectionStonesPlotGateway;
 import pl.laina.plots.teleport.ProtectionStonesTeleportDelegate;
 
@@ -36,6 +38,7 @@ import java.io.IOException;
 public final class LainaPlotsPlugin
 extends JavaPlugin {
     private PluginSettings settings;
+    private ResourcePackManager resourcePacks;
     public void onEnable() {
         ProtectionStones protectionStones;
         block5: {
@@ -52,11 +55,14 @@ extends JavaPlugin {
             return;
         }
         Messages messages = new Messages(this);
+        this.resourcePacks = new ResourcePackManager(this, messages);
+        this.resourcePacks.start(this.settings.resourcePack());
         ProtectionStonesPlotGateway gateway = new ProtectionStonesPlotGateway(this, protectionStones);
         PlotMapper mapper = new PlotMapper();
         PlotCatalogue catalogue = new PlotCatalogue();
         PlotsMenuRenderer renderer = new PlotsMenuRenderer(this, messages, catalogue);
-        PlotsMenuController menus = new PlotsMenuController(this, gateway, mapper, renderer, messages);
+        FavoriteStore favorites = new FavoriteStore(this.getDataFolder().toPath().resolve("favorites.yml"), this.getLogger()::warning);
+        PlotsMenuController menus = new PlotsMenuController(this, gateway, mapper, renderer, messages, favorites);
         ProtectionStonesTeleportDelegate teleports = new ProtectionStonesTeleportDelegate(protectionStones.getConfigOptions().base_command, (player, key) -> messages.send(player, key), menus::markUsed, (player, target) -> ProtectionStones.getPSRegions(player.getWorld(), target.regionName()).stream().anyMatch(region -> region.getWorld().getUID().equals(target.key().worldId()) && region.getId().equals(target.key().regionId())));
         PluginCommand command = this.getCommand("dzialki");
         if (command == null) {
@@ -68,6 +74,7 @@ extends JavaPlugin {
         command.setExecutor((CommandExecutor)executor);
         command.setTabCompleter((TabCompleter)executor);
         this.getServer().getPluginManager().registerEvents((Listener)new GuiListener(menus, teleports), (Plugin)this);
+        this.getServer().getPluginManager().registerEvents(this.resourcePacks, this);
         this.getLogger().info("LainaPlots w\u0142\u0105czony. GUI: /dzialki, alias: /plots.");
     }
 
@@ -83,6 +90,16 @@ extends JavaPlugin {
     public void reloadSettings() {
         this.reloadConfig();
         this.settings = PluginSettings.load(this);
+        if (this.resourcePacks != null) {
+            this.resourcePacks.reload(this.settings.resourcePack());
+        }
+    }
+
+    @Override
+    public void onDisable() {
+        if (this.resourcePacks != null) {
+            this.resourcePacks.close();
+        }
     }
 
     public PluginSettings settings() {

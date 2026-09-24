@@ -5,19 +5,29 @@ package pl.laina.plots.core;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import pl.laina.plots.core.Page;
 import pl.laina.plots.model.PlotData;
 import pl.laina.plots.model.PlotFilter;
+import pl.laina.plots.model.PlotKey;
 import pl.laina.plots.model.PlotRelation;
 
 public final class PlotCatalogue {
-    private static final Comparator<PlotData> ORDER = Comparator.comparing((PlotData p) -> p.relation() == PlotRelation.OWNED ? 0 : 1).thenComparing(PlotData::displayName, String.CASE_INSENSITIVE_ORDER).thenComparing(PlotData::worldName, String.CASE_INSENSITIVE_ORDER).thenComparing(p -> p.key().regionId());
-
     public Page<PlotData> page(List<PlotData> all, PlotFilter filter, int requestedPage, int pageSize) {
+        return this.page(all, filter, requestedPage, pageSize, Set.of());
+    }
+
+    public Page<PlotData> page(List<PlotData> all, PlotFilter filter, int requestedPage, int pageSize, Set<PlotKey> favorites) {
         if (pageSize < 1) {
             throw new IllegalArgumentException("pageSize must be positive");
         }
-        List<PlotData> filtered = all.stream().filter(plot -> this.matches((PlotData)plot, filter)).sorted(ORDER).toList();
+        Comparator<PlotData> order = Comparator
+                .comparing((PlotData plot) -> favorites.contains(plot.key()) ? 0 : 1)
+                .thenComparing(plot -> plot.relation() == PlotRelation.OWNED ? 0 : 1)
+                .thenComparing(PlotData::displayName, String.CASE_INSENSITIVE_ORDER)
+                .thenComparing(PlotData::worldName, String.CASE_INSENSITIVE_ORDER)
+                .thenComparing(plot -> plot.key().regionId());
+        List<PlotData> filtered = all.stream().filter(plot -> this.matches(plot, filter)).sorted(order).toList();
         int totalPages = Math.max(1, (filtered.size() + pageSize - 1) / pageSize);
         int page = Math.max(0, Math.min(requestedPage, totalPages - 1));
         int from = Math.min(filtered.size(), page * pageSize);

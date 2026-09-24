@@ -54,4 +54,8 @@ public final class GuiIcons {
     public ConfiguredIcon forPlot(PlotRelation relation) {
         return this.get(GuiIcon.forPlot(relation));
     }
+
+    public ConfiguredIcon forPlot(PlotRelation relation, boolean favorite) {
+        return this.get(GuiIcon.forPlot(relation, favorite));
+    }
 }

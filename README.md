@@ -38,8 +38,10 @@ Każda ikona obsługuje `material` oraz prostą dodatnią wartość `custom-mode
 | `next-page` | `ARROW` |
 | `refresh` | `SUNFLOWER` |
 | `filler` | `BLACK_STAINED_GLASS_PANE` |
-| `owner-plot` | `GRASS_BLOCK` |
-| `member-plot` | `CYAN_STAINED_GLASS` |
+| `owner-plot` | `PAPER` + CMD `71001` |
+| `member-plot` | `PAPER` + CMD `71002` |
+| `favorite-owner-plot` | `PAPER` + CMD `71003` |
+| `favorite-member-plot` | `PAPER` + CMD `71004` |
 | `loading` | `CLOCK` |
 | `empty-state` | `FLOWER_POT` |
 
@@ -57,6 +59,23 @@ gui:
 ```
 
 Nieprawidłowy, powietrzny lub niebędący itemem Material powoduje czytelny warning w logu i użycie domyślnego Materialu danej ikony. Starszy `config.yml` bez `gui.icons` działa bez migracji i używa wszystkich fallbacków.
+
+### Łatwa podmiana grafik
+
+Każda grafika działki jest osobnym plikiem PNG w
+`resourcepack/assets/lainaplots/textures/item/`. Żeby zmienić wygląd, wystarczy
+podmienić wybrany PNG bez zmiany jego nazwy, a następnie wykonać:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\build-resource-pack.ps1
+mvn package
+```
+
+Skrypt automatycznie buduje `src/main/resources/LainaPlots-Icons.zip`, a Maven
+umieszcza tę paczkę wewnątrz pluginu. Szczegółowe mapowanie plików i CMD znajduje
+się w `resourcepack/README.md`. Na serwerze można również podmienić sam plik
+`plugins/LainaPlots/LainaPlots-Icons.zip` i wykonać `/dzialki reload`, bez
+przebudowywania pluginu.
 
 ## Budowanie
 

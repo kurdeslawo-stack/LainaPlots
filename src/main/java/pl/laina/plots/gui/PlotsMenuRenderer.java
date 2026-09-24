@@ -20,6 +20,7 @@ package pl.laina.plots.gui;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -79,7 +80,11 @@ public final class PlotsMenuRenderer {
     }
 
     public Inventory render(List<PlotData> plots, PlotFilter filter, int requestedPage, PluginSettings settings, Optional<PlotKey> lastUsed) {
-        Page<PlotData> page = this.catalogue.page(plots, filter, requestedPage, settings.plotsPerPage());
+        return this.render(plots, filter, requestedPage, settings, lastUsed, Set.of());
+    }
+
+    public Inventory render(List<PlotData> plots, PlotFilter filter, int requestedPage, PluginSettings settings, Optional<PlotKey> lastUsed, Set<PlotKey> favorites) {
+        Page<PlotData> page = this.catalogue.page(plots, filter, requestedPage, settings.plotsPerPage(), favorites);
         PlotsMenuHolder holder = new PlotsMenuHolder(plots, filter, page.index());
         Component title = this.messages.parse(settings.guiTitle()).append(this.messages.parse(" <dark_gray>\u2022 " + (page.index() + 1) + "/" + page.totalPages()));
         Inventory inventory = Bukkit.createInventory((InventoryHolder)holder, (int)54, (Component)title);
@@ -88,7 +93,7 @@ public final class PlotsMenuRenderer {
         this.fill(inventory, icons.get(GuiIcon.FILLER));
         for (int i = 0; i < Math.min(page.entries().size(), PLOT_SLOTS.length); ++i) {
             PlotData plot = page.entries().get(i);
-            inventory.setItem(PLOT_SLOTS[i], this.plotItem(plot, lastUsed.filter(plot.key()::equals).isPresent(), icons));
+            inventory.setItem(PLOT_SLOTS[i], this.plotItem(plot, lastUsed.filter(plot.key()::equals).isPresent(), favorites.contains(plot.key()), icons));
         }
         if (page.isEmpty()) {
             inventory.setItem(22, this.item(icons.get(GuiIcon.EMPTY_STATE), "<yellow><bold>Brak dzia\u0142ek</bold>", List.of(filter == PlotFilter.ALL ? "<gray>Nie masz jeszcze \u017cadnej dost\u0119pnej dzia\u0142ki." : "<gray>Brak dzia\u0142ek w tym filtrze.", "<dark_gray>Postaw ProtectionStone lub zmie\u0144 filtr.")));
@@ -97,7 +102,7 @@ public final class PlotsMenuRenderer {
             inventory.setItem(45, this.action(icons.get(GuiIcon.PREVIOUS_PAGE), "<green>Poprzednia strona", MenuAction.PREVIOUS));
         }
         inventory.setItem(47, this.action(icons.get(GuiIcon.FILTER), "<aqua>Filtr: <white>" + this.filterName(filter), MenuAction.FILTER));
-        inventory.setItem(49, this.item(icons.get(GuiIcon.SUMMARY), "<gold><bold>Podsumowanie</bold>", List.of("<gray>Widoczne: <white>" + page.totalEntries(), "<gray>Wszystkie dost\u0119pne: <white>" + plots.size(), "<dark_gray>LPM na dzia\u0142k\u0119 = teleport")));
+        inventory.setItem(49, this.item(icons.get(GuiIcon.SUMMARY), "<gold><bold>Podsumowanie</bold>", List.of("<gray>Widoczne: <white>" + page.totalEntries(), "<gray>Wszystkie dost\u0119pne: <white>" + plots.size(), "<dark_gray>LPM = teleport", "<dark_gray>PPM = dodaj/usu\u0144 z ulubionych")));
         inventory.setItem(51, this.action(icons.get(GuiIcon.REFRESH), "<yellow>Od\u015bwie\u017c list\u0119", MenuAction.REFRESH));
         if (page.hasNext()) {
             inventory.setItem(53, this.action(icons.get(GuiIcon.NEXT_PAGE), "<green>Nast\u0119pna strona", MenuAction.NEXT));
@@ -143,22 +148,26 @@ public final class PlotsMenuRenderer {
         }
     }
 
-    private ItemStack plotItem(PlotData plot, boolean lastUsed, GuiIcons icons) {
+    private ItemStack plotItem(PlotData plot, boolean lastUsed, boolean favorite, GuiIcons icons) {
         String relation = plot.relation() == PlotRelation.OWNED ? "<green>W\u0142asna" : "<aqua>Wsp\u00f3\u0142dzielona";
         String owners = plot.ownerNames().isEmpty() ? "nieznany" : String.join((CharSequence)", ", plot.ownerNames());
         ArrayList<String> lore = new ArrayList<String>(List.of("<dark_gray>\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501", "<gray>Status: " + relation, "<gray>W\u0142a\u015bciciel: <white>" + this.escape(owners), "<gray>\u015awiat: <white>" + this.escape(plot.worldName()), "<gray>Home: <white>" + plot.homeX() + ", " + plot.homeY() + ", " + plot.homeZ(), "<gray>Cz\u0142onkowie: <white>" + plot.memberCount(), ""));
         if (lastUsed) {
             lore.add("<gold>\u2605 Ostatnio u\u017cywana");
         }
-        lore.add("<yellow>\u25b6 Kliknij, aby si\u0119 teleportowa\u0107");
-        ItemStack item = this.item(icons.forPlot(plot.relation()), (plot.relation() == PlotRelation.OWNED ? "<green>" : "<aqua>") + "<bold>" + this.escape(plot.displayName()) + "</bold>", lore);
+        if (favorite) {
+            lore.add("<gold>\u2605 Ulubiona");
+        }
+        lore.add("<yellow>\u25b6 LPM: teleport");
+        lore.add(favorite ? "<red>\u2605 PPM: usu\u0144 z ulubionych" : "<gold>\u2606 PPM: dodaj do ulubionych");
+        ItemStack item = this.item(icons.forPlot(plot.relation(), favorite), (plot.relation() == PlotRelation.OWNED ? "<green>" : "<aqua>") + "<bold>" + this.escape(plot.displayName()) + "</bold>", lore);
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(this.plotWorldKey, PersistentDataType.STRING, plot.key().worldId().toString());
         meta.getPersistentDataContainer().set(this.plotRegionKey, PersistentDataType.STRING, plot.key().regionId());
         if (plot.regionName() != null && !plot.regionName().isBlank()) {
             meta.getPersistentDataContainer().set(this.plotNameKey, PersistentDataType.STRING, plot.regionName());
         }
-        if (lastUsed) {
+        if (lastUsed || favorite) {
             meta.setEnchantmentGlintOverride(Boolean.valueOf(true));
         }
         item.setItemMeta(meta);
@@ -185,6 +194,9 @@ public final class PlotsMenuRenderer {
 
     private void fill(Inventory inventory, ConfiguredIcon icon) {
         ItemStack filler = this.item(icon, " ", List.of());
+        ItemMeta meta = filler.getItemMeta();
+        meta.setHideTooltip(true);
+        filler.setItemMeta(meta);
         for (int slot = 0; slot < inventory.getSize(); ++slot) {
             inventory.setItem(slot, filler);
         }
